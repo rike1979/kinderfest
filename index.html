@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kinderfest</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:       #2e7d52;
+      --green-dark:  #1e5c3a;
+      --green-light: #eaf5ef;
+      --yellow:      #f59e0b;
+      --red:         #dc2626;
+      --gray:        #6b7280;
+      --gray-light:  #f3f4f6;
+      --border:      #e5e7eb;
+      --shadow:      0 2px 10px rgba(0,0,0,0.08);
+      --radius:      14px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f7f3;
+      color: #111827;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 100%);
+      color: #fff;
+      padding: 24px 16px 20px;
+      text-align: center;
+    }
+    header h1 { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.02em; }
+    header p  { margin-top: 4px; font-size: 0.9rem; opacity: 0.8; }
+
+    /* ── Tabs ── */
+    nav.tabs {
+      display: flex;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+    .tab {
+      flex: 1;
+      padding: 14px 4px;
+      text-align: center;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--gray);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: color .15s, border-color .15s;
+      user-select: none;
+    }
+    .tab.active { color: var(--green); border-bottom-color: var(--green); }
+
+    /* ── Container ── */
+    .container  { max-width: 860px; margin: 0 auto; padding: 16px; }
+    .section    { display: none; }
+    .section.active { display: block; }
+
+    /* ── Add button ── */
+    .add-btn {
+      display: block;
+      width: 100%;
+      padding: 13px;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 14px;
+      transition: background .15s;
+    }
+    .add-btn:hover { background: var(--green-dark); }
+
+    /* ── Summary ── */
+    .summary {
+      font-size: 0.8rem;
+      color: var(--gray);
+      margin-bottom: 10px;
+      padding-left: 2px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .card-header {
+      background: var(--green-light);
+      padding: 11px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .family-name { font-weight: 800; font-size: 1rem; color: var(--green-dark); }
+    .card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    /* ── Buttons ── */
+    .btn {
+      padding: 5px 10px;
+      border-radius: 7px;
+      border: none;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .15s;
+      white-space: nowrap;
+    }
+    .btn:hover    { opacity: 0.78; }
+    .btn-edit     { background: #fef9c3; color: #854d0e; }
+    .btn-delete   { background: #fee2e2; color: var(--red); }
+    .btn-add      { background: var(--green-light); color: var(--green-dark); }
+    .btn-primary  { background: var(--green); color: #fff; }
+    .btn-secondary{ background: var(--gray-light); color: #374151; }
+    .btn-danger   { background: var(--red); color: #fff; }
+    .btn-year     {
+      padding: 6px 14px; border-radius: 20px; border: 2px solid var(--border);
+      background: #fff; color: var(--gray); font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; transition: all .15s;
+    }
+    .btn-year.active, .btn-year:hover {
+      border-color: var(--green); color: var(--green); background: var(--green-light);
+    }
+
+    .card-body { padding: 12px 14px; }
+
+    /* ── Detail grid ── */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 16px;
+    }
+    .detail-item label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--gray);
+      margin-bottom: 2px;
+    }
+    .detail-item span { font-size: 0.92rem; }
+    .full-width { grid-column: 1 / -1; }
+
+    /* ── Contribution rows ── */
+    .contrib-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--gray-light);
+    }
+    .contrib-row:last-child { border-bottom: none; }
+    .contrib-text { font-size: 0.92rem; }
+    .contrib-qty  { font-weight: 700; margin-right: 4px; }
+
+    /* ── Archive ── */
+    .archive-intro {
+      text-align: center;
+      color: var(--gray);
+      font-size: 0.88rem;
+      margin-bottom: 16px;
+    }
+    .year-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .archive-section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--gray);
+      margin: 20px 0 8px;
+    }
+    .readonly-badge {
+      font-size: 0.68rem;
+      background: #e5e7eb;
+      color: var(--gray);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-weight: 600;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center;
+      padding: 48px 16px;
+      color: var(--gray);
+    }
+    .empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
+    .empty p    { font-size: 0.95rem; line-height: 1.6; }
+
+    /* ── Config warning ── */
+    .config-warn {
+      background: #fef3c7;
+      border: 2px solid var(--yellow);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+    .config-warn strong { display: block; margin-bottom: 4px; font-size: 0.95rem; }
+    .config-warn code {
+      background: #fff;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+
+    /* ── Modal ── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 480px;
+      max-height: 92vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+    .modal-head {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-head h2 { font-size: 1.05rem; }
+    .modal-close {
+      background: none; border: none; font-size: 1.3rem;
+      color: var(--gray); cursor: pointer; line-height: 1;
+    }
+    .modal-body { padding: 18px; }
+    .modal-foot {
+      padding: 14px 18px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .modal-foot .btn { padding: 9px 18px; font-size: 0.9rem; }
+
+    /* ── Form ── */
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.93rem;
+      font-family: inherit;
+      background: #fff;
+      transition: border-color .15s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { outline: none; border-color: var(--green); }
+    .form-group textarea { resize: vertical; min-height: 72px; }
+    .hint { font-size: 0.75rem; color: var(--gray); margin-top: 4px; }
+
+    /* ── Auth modal ── */
+    .auth-desc {
+      font-size: 0.88rem;
+      color: var(--gray);
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1f2937;
+      color: #fff;
+      padding: 11px 20px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      z-index: 300;
+      transition: transform .25s ease, opacity .25s;
+      opacity: 0;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    #toast.show      { transform: translateX(-50%) translateY(0); opacity: 1; }
+    #toast.t-success { background: var(--green); }
+    #toast.t-error   { background: var(--red); }
+
+    @media (max-width: 480px) {
+      .detail-grid { grid-template-columns: 1fr; }
+      header h1    { font-size: 1.4rem; }
+      .tab         { font-size: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🎉 Kinderfest <span id="header-year"></span></h1>
+  <p>Anmeldung &amp; Mitbringliste</p>
+</header>
+
+<nav class="tabs">
+  <div class="tab active" data-tab="guests">🏠 Anreise &amp; Unterkunft</div>
+  <div class="tab" data-tab="contributions">🍰 Mitbringliste</div>
+  <div class="tab" data-tab="archive">📚 Archiv</div>
+</nav>
+
+<div class="container">
+
+  <!-- ── Tab 1: Guests ── -->
+  <div class="section active" id="tab-guests">
+    <div id="config-warn"></div>
+    <button class="add-btn" onclick="openGuestForm()">+ Unsere Familie eintragen</button>
+    <div class="summary" id="guests-summary"></div>
+    <div id="guests-list"></div>
+  </div>
+
+  <!-- ── Tab 2: Contributions ── -->
+  <div class="section" id="tab-contributions">
+    <button class="add-btn" onclick="openContributionForm()">+ Eintrag hinzufügen</button>
+    <div class="summary" id="contrib-summary"></div>
+    <div id="contributions-list"></div>
+  </div>
+
+  <!-- ── Tab 3: Archive ── -->
+  <div class="section" id="tab-archive">
+    <p class="archive-intro">Vergangene Feste — nur zum Anschauen</p>
+    <div class="year-picker" id="year-picker"></div>
+    <div id="archive-content"></div>
+  </div>
+
+</div>
+
+<!-- ════ MODALS ════ -->
+
+<!-- Guest Form -->
+<div class="overlay" id="guest-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="guest-modal-title">Familie eintragen</h2>
+      <button class="modal-close" onclick="closeOverlay('guest-overlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Familienname *</label>
+        <input id="g-family" type="text" placeholder="z. B. Müller">
+      </div>
+      <div class="form-group">
+        <label>Anzahl Personen</label>
+        <input id="g-persons" type="text" placeholder="z. B. 4 oder 2–3">
+      </div>
+      <div class="form-group">
+        <label>Anreise</label>
+        <input id="g-arrival" type="text" placeholder="z. B. 22.05. oder 22./23.05.">
+      </div>
+      <div class="form-group">
+        <label>Abreise</label>
+        <input id="g-departure" type="text" placeholder="z. B. 24.05.">
+      </div>
+      <div class="form-group">
+        <label>Kloster?</label>
+        <select id="g-kloster">
+          <option value="">– noch nicht sicher –</option>
+          <option value="ja">Ja</option>
+          <option value="nein">Nein</option>
+          <option value="vielleicht">Vielleicht</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Bettwäsche / Handtücher</label>
+        <textarea id="g-bedding" placeholder="Was ihr braucht oder was ihr mitbringt …"></textarea>
+        <p class="hint">z. B. „Handtücher wären super, Laken bringen wir mit"</p>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeOverlay('guest-overlay')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveGuest()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Contribution Form -->
+<div class="overlay" id="contrib-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="contrib-modal-title">Was mitbringen?</h2>
+      <button class="modal-close" onclick="closeOverlay('contrib-overlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Familienname *</label>
+        <input id="c-family" type="text" placeholder="z. B. Müller">
+      </div>
+      <div class="form-group">
+        <label>Menge / Anzahl</label>
+        <input id="c-quantity" type="text" placeholder="z. B. 1, 2, für alle">
+      </div>
+      <div class="form-group">
+        <label>Was? *</label>
+        <input id="c-item" type="text" placeholder="z. B. Käsekuchen, Aufstrich, Getränke">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeOverlay('contrib-overlay')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveContribution()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Auth (Familienname-Check) -->
+<div class="overlay" id="auth-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="auth-title">Bestätigen</h2>
+      <button class="modal-close" onclick="closeOverlay('auth-overlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="auth-desc" id="auth-desc">Gib den Familiennamen ein, um fortzufahren.</p>
+      <div class="form-group">
+        <label>Familienname</label>
+        <input id="auth-name" type="text" placeholder="Familienname">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeOverlay('auth-overlay')">Abbrechen</button>
+      <button class="btn btn-danger" id="auth-btn">Bestätigen</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  CONFIG — Supabase URL und Anon Key hier eintragen
+// ══════════════════════════════════════════════════════════
+const SUPABASE_URL      = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+// ══════════════════════════════════════════════════════════
+
+const CURRENT_YEAR = new Date().getFullYear();
+document.getElementById('header-year').textContent = CURRENT_YEAR;
+
+const configured = !SUPABASE_URL.startsWith('YOUR_');
+let db;
+
+if (configured) {
+  db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} else {
+  document.getElementById('config-warn').innerHTML = `
+    <div class="config-warn">
+      <strong>⚙️ Einrichtung nötig</strong>
+      Bitte <code>SUPABASE_URL</code> und <code>SUPABASE_ANON_KEY</code> oben in der Datei eintragen.<br>
+      Supabase → Projekt anlegen → Settings → API → Project URL &amp; anon key kopieren.
+    </div>`;
+}
+
+// ── State ──
+let editingGuestId   = null;
+let editingContribId = null;
+let pendingAuth      = null;
+let activeArchiveYear = null;
+
+// ── Tabs ──
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    if (tab.dataset.tab === 'archive') loadArchiveYears();
+  });
+});
+
+// ── Toast ──
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (type ? ' t-' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 3200);
+}
+
+// ── Overlays ──
+function openOverlay(id)  { document.getElementById(id).classList.add('open'); }
+function closeOverlay(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// ── Escape HTML ──
+function h(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ════════════════════════════════════
+//  GUESTS (aktuelles Jahr)
+// ════════════════════════════════════
+async function loadGuests() {
+  if (!configured) return;
+  const { data, error } = await db.from('guests').select('*')
+    .eq('year', CURRENT_YEAR).order('created_at');
+  if (error) { toast('Fehler beim Laden', 'error'); return; }
+
+  const total = data.reduce((s, g) => s + (parseInt(g.persons) || 0), 0);
+  document.getElementById('guests-summary').textContent =
+    data.length
+      ? `${data.length} Familie${data.length !== 1 ? 'n' : ''} eingetragen` +
+        (total ? ` · ca. ${total} Personen` : '')
+      : '';
+
+  const list = document.getElementById('guests-list');
+  if (!data.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">🏡</div>
+      <p>Noch keine Familie eingetragen.<br>Sei die Erste!</p></div>`;
+    return;
+  }
+  list.innerHTML = data.map(g => renderGuestCard(g, true)).join('');
+}
+
+function renderGuestCard(g, editable) {
+  const actions = editable ? `
+    <div class="card-actions">
+      <button class="btn btn-edit"   onclick="authThen('edit','guest','${g.id}','${h(g.family_name)}')">✏️ Bearbeiten</button>
+      <button class="btn btn-delete" onclick="authThen('delete','guest','${g.id}','${h(g.family_name)}')">🗑️</button>
+    </div>` : `<span class="readonly-badge">nur lesen</span>`;
+
+  return `
+    <div class="card">
+      <div class="card-header">
+        <span class="family-name">Familie ${h(g.family_name)}</span>
+        ${actions}
+      </div>
+      <div class="card-body">
+        <div class="detail-grid">
+          <div class="detail-item"><label>Personen</label><span>${h(g.persons) || '–'}</span></div>
+          <div class="detail-item"><label>Anreise</label><span>${h(g.arrival) || '–'}</span></div>
+          <div class="detail-item"><label>Abreise</label><span>${h(g.departure) || '–'}</span></div>
+          <div class="detail-item"><label>Kloster</label><span>${h(g.kloster) || '–'}</span></div>
+          ${g.bedding ? `<div class="detail-item full-width"><label>Bettwäsche / Handtücher</label><span>${h(g.bedding)}</span></div>` : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+function openGuestForm(guest = null) {
+  editingGuestId = guest?.id ?? null;
+  document.getElementById('guest-modal-title').textContent = guest ? 'Eintrag bearbeiten' : 'Familie eintragen';
+  document.getElementById('g-family').value    = guest?.family_name || '';
+  document.getElementById('g-persons').value   = guest?.persons     || '';
+  document.getElementById('g-arrival').value   = guest?.arrival     || '';
+  document.getElementById('g-departure').value = guest?.departure   || '';
+  document.getElementById('g-kloster').value   = guest?.kloster     || '';
+  document.getElementById('g-bedding').value   = guest?.bedding     || '';
+  openOverlay('guest-overlay');
+  setTimeout(() => document.getElementById(guest ? 'g-persons' : 'g-family').focus(), 80);
+}
+
+async function saveGuest() {
+  const family_name = document.getElementById('g-family').value.trim();
+  if (!family_name) { toast('Bitte Familiennamen eingeben', 'error'); return; }
+
+  const row = {
+    year: CURRENT_YEAR,
+    family_name,
+    persons:   document.getElementById('g-persons').value.trim()   || null,
+    arrival:   document.getElementById('g-arrival').value.trim()   || null,
+    departure: document.getElementById('g-departure').value.trim() || null,
+    kloster:   document.getElementById('g-kloster').value          || null,
+    bedding:   document.getElementById('g-bedding').value.trim()   || null,
+  };
+
+  const { error } = editingGuestId
+    ? await db.from('guests').update(row).eq('id', editingGuestId)
+    : await db.from('guests').insert(row);
+
+  if (error) { toast('Fehler beim Speichern', 'error'); return; }
+  closeOverlay('guest-overlay');
+  toast(editingGuestId ? 'Eintrag aktualisiert ✓' : 'Familie eingetragen! 🎉', 'success');
+  loadGuests();
+}
+
+// ════════════════════════════════════
+//  CONTRIBUTIONS (aktuelles Jahr)
+// ════════════════════════════════════
+async function loadContributions() {
+  if (!configured) return;
+  const { data, error } = await db.from('contributions').select('*')
+    .eq('year', CURRENT_YEAR).order('family_name').order('created_at');
+  if (error) { toast('Fehler beim Laden', 'error'); return; }
+
+  document.getElementById('contrib-summary').textContent =
+    data.length ? `${data.length} Eintrag${data.length !== 1 ? '·e' : ''}` : '';
+
+  const list = document.getElementById('contributions-list');
+  if (!data.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">🎂</div>
+      <p>Noch nichts eingetragen.<br>Wer bringt was mit?</p></div>`;
+    return;
+  }
+  list.innerHTML = renderContribGroups(data, true);
+}
+
+function renderContribGroups(data, editable) {
+  const groups = {};
+  data.forEach(c => {
+    if (!groups[c.family_name]) groups[c.family_name] = [];
+    groups[c.family_name].push(c);
+  });
+
+  return Object.entries(groups).map(([family, items]) => `
+    <div class="card">
+      <div class="card-header">
+        <span class="family-name">Familie ${h(family)}</span>
+        ${editable
+          ? `<button class="btn btn-add" onclick="openContributionForm(null,'${h(family)}')">+ Hinzufügen</button>`
+          : `<span class="readonly-badge">nur lesen</span>`}
+      </div>
+      <div class="card-body">
+        ${items.map(c => `
+          <div class="contrib-row">
+            <span class="contrib-text">
+              ${c.quantity ? `<span class="contrib-qty">${h(c.quantity)}×</span>` : ''}${h(c.item)}
+            </span>
+            ${editable ? `
+            <div class="card-actions">
+              <button class="btn btn-edit"   onclick="authThen('edit','contrib','${c.id}','${h(family)}')">✏️</button>
+              <button class="btn btn-delete" onclick="authThen('delete','contrib','${c.id}','${h(family)}')">🗑️</button>
+            </div>` : ''}
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function openContributionForm(contrib = null, prefillFamily = '') {
+  editingContribId = contrib?.id ?? null;
+  document.getElementById('contrib-modal-title').textContent = contrib ? 'Eintrag bearbeiten' : 'Was mitbringen?';
+  document.getElementById('c-family').value   = contrib?.family_name || prefillFamily || '';
+  document.getElementById('c-quantity').value = contrib?.quantity    || '';
+  document.getElementById('c-item').value     = contrib?.item        || '';
+  openOverlay('contrib-overlay');
+  setTimeout(() => document.getElementById(prefillFamily ? 'c-item' : 'c-family').focus(), 80);
+}
+
+async function saveContribution() {
+  const family_name = document.getElementById('c-family').value.trim();
+  const item        = document.getElementById('c-item').value.trim();
+  if (!family_name || !item) { toast('Bitte Familie und Inhalt ausfüllen', 'error'); return; }
+
+  const row = {
+    year: CURRENT_YEAR,
+    family_name,
+    quantity: document.getElementById('c-quantity').value.trim() || null,
+    item,
+  };
+
+  const { error } = editingContribId
+    ? await db.from('contributions').update(row).eq('id', editingContribId)
+    : await db.from('contributions').insert(row);
+
+  if (error) { toast('Fehler beim Speichern', 'error'); return; }
+  closeOverlay('contrib-overlay');
+  toast('Gespeichert ✓', 'success');
+  loadContributions();
+}
+
+// ════════════════════════════════════
+//  ARCHIV
+// ════════════════════════════════════
+async function loadArchiveYears() {
+  if (!configured) return;
+  const [r1, r2] = await Promise.all([
+    db.from('guests').select('year'),
+    db.from('contributions').select('year'),
+  ]);
+  const all = [...(r1.data || []), ...(r2.data || [])].map(r => r.year);
+  const years = [...new Set(all)].filter(y => y < CURRENT_YEAR).sort((a,b) => b-a);
+
+  const picker = document.getElementById('year-picker');
+  if (!years.length) {
+    picker.innerHTML = '';
+    document.getElementById('archive-content').innerHTML =
+      `<div class="empty"><div class="empty-icon">📦</div><p>Noch kein vergangenes Fest im Archiv.</p></div>`;
+    return;
+  }
+
+  picker.innerHTML = years.map(y => `
+    <button class="btn-year ${y === activeArchiveYear ? 'active' : ''}"
+            onclick="loadArchiveYear(${y})">${y}</button>`).join('');
+
+  if (!activeArchiveYear || !years.includes(activeArchiveYear)) {
+    loadArchiveYear(years[0]);
+  }
+}
+
+async function loadArchiveYear(year) {
+  activeArchiveYear = year;
+  document.querySelectorAll('.btn-year').forEach(b => {
+    b.classList.toggle('active', parseInt(b.textContent) === year);
+  });
+
+  const content = document.getElementById('archive-content');
+  content.innerHTML = `<div class="empty"><div class="empty-icon">⏳</div><p>Lade …</p></div>`;
+
+  const [r1, r2] = await Promise.all([
+    db.from('guests').select('*').eq('year', year).order('created_at'),
+    db.from('contributions').select('*').eq('year', year).order('family_name').order('created_at'),
+  ]);
+
+  const guests  = r1.data || [];
+  const contribs = r2.data || [];
+
+  let html = '';
+
+  html += `<p class="archive-section-title">🏠 Anreise &amp; Unterkunft ${year}</p>`;
+  if (guests.length) {
+    html += guests.map(g => renderGuestCard(g, false)).join('');
+  } else {
+    html += `<div class="empty" style="padding:20px"><p>Keine Einträge.</p></div>`;
+  }
+
+  html += `<p class="archive-section-title" style="margin-top:24px">🍰 Mitbringliste ${year}</p>`;
+  if (contribs.length) {
+    html += renderContribGroups(contribs, false);
+  } else {
+    html += `<div class="empty" style="padding:20px"><p>Keine Einträge.</p></div>`;
+  }
+
+  content.innerHTML = html;
+}
+
+// ════════════════════════════════════
+//  AUTH (Familienname-Check)
+// ════════════════════════════════════
+function authThen(action, type, id, expectedName) {
+  pendingAuth = { action, type, id, expectedName };
+  const isDel = action === 'delete';
+  document.getElementById('auth-title').textContent = isDel ? 'Eintrag löschen' : 'Eintrag bearbeiten';
+  document.getElementById('auth-desc').textContent  =
+    `Gib den Familiennamen ein, um den Eintrag von Familie ${expectedName} zu ${isDel ? 'löschen' : 'bearbeiten'}.`;
+  document.getElementById('auth-btn').textContent   = isDel ? 'Löschen' : 'Bearbeiten';
+  document.getElementById('auth-btn').className     = 'btn ' + (isDel ? 'btn-danger' : 'btn-primary');
+  document.getElementById('auth-name').value = '';
+  openOverlay('auth-overlay');
+  setTimeout(() => document.getElementById('auth-name').focus(), 80);
+}
+
+document.getElementById('auth-btn').addEventListener('click', runAuth);
+document.getElementById('auth-name').addEventListener('keydown', e => { if (e.key === 'Enter') runAuth(); });
+
+async function runAuth() {
+  const entered  = document.getElementById('auth-name').value.trim().toLowerCase();
+  const expected = (pendingAuth?.expectedName || '').toLowerCase();
+
+  if (entered !== expected) {
+    toast('Familienname stimmt nicht überein', 'error');
+    document.getElementById('auth-name').select();
+    return;
+  }
+
+  closeOverlay('auth-overlay');
+  const { action, type, id } = pendingAuth;
+  const table = type === 'guest' ? 'guests' : 'contributions';
+
+  if (action === 'delete') {
+    const { error } = await db.from(table).delete().eq('id', id);
+    if (error) { toast('Fehler beim Löschen', 'error'); return; }
+    toast('Eintrag gelöscht', 'success');
+    type === 'guest' ? loadGuests() : loadContributions();
+  } else {
+    const { data, error } = await db.from(table).select('*').eq('id', id).single();
+    if (error) { toast('Fehler beim Laden', 'error'); return; }
+    type === 'guest' ? openGuestForm(data) : openContributionForm(data);
+  }
+}
+
+// ── Init ──
+loadGuests();
+loadContributions();
+</script>
+</body>
+</html>
