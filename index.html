@@ -34,6 +34,13 @@
 
     <!-- ── Tab 2: Contributions ── -->
     <div class="section" id="tab-contributions">
+      <div class="section-row">
+        <span class="section-label">Was wird noch gebraucht</span>
+        <button class="btn btn-primary btn-sm" onclick="openWishlistForm()">+ Wunsch</button>
+      </div>
+      <div id="wishlist-list"></div>
+
+      <p class="contrib-section-label">Mitbringliste</p>
       <button class="add-btn" onclick="openContributionForm()">+ Eintrag hinzufügen</button>
       <div class="summary" id="contrib-summary"></div>
       <div id="contributions-list"></div>
@@ -115,10 +122,35 @@
           <label>Was? *</label>
           <input id="c-item" type="text" placeholder="z. B. Käsekuchen, Aufstrich, Getränke">
         </div>
+        <input type="hidden" id="c-wishlist-id">
       </div>
       <div class="modal-foot">
         <button class="btn btn-secondary" onclick="closeOverlay('contrib-overlay')">Abbrechen</button>
         <button class="btn btn-primary" onclick="saveContribution()">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wishlist Form -->
+  <div class="overlay" id="wishlist-overlay">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="wishlist-modal-title">Wunsch hinzufügen</h2>
+        <button class="modal-close" onclick="closeOverlay('wishlist-overlay')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Was wird gebraucht? *</label>
+          <input id="w-item" type="text" placeholder="z. B. Äpfel, Tischdecken, Kerzen">
+        </div>
+        <div class="form-group">
+          <label>Menge (Anzahl) *</label>
+          <input id="w-quantity" type="number" min="1" placeholder="z. B. 10">
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-secondary" onclick="closeOverlay('wishlist-overlay')">Abbrechen</button>
+        <button class="btn btn-primary" onclick="saveWishlistItem()">Speichern</button>
       </div>
     </div>
   </div>
@@ -297,6 +329,7 @@
       const { data, error } = await db.from('contributions').select('*')
         .eq('year', CURRENT_YEAR).order('family_name').order('created_at');
       if (error) { toast('Fehler beim Laden', 'error'); return; }
+      loadWishlist(data);
 
       document.getElementById('contrib-summary').textContent =
         data.length ? `${data.length} ${data.length !== 1 ? 'Einträge' : 'Eintrag'}` : '';
@@ -328,7 +361,7 @@
         ${items.map(c => `
           <div class="contrib-row">
             <span class="contrib-qty">${c.quantity ? ((/^\d/.test(c.quantity) ? `${h(c.quantity)}×` : h(c.quantity))) : ''}</span>
-            <span>${h(c.item)}</span>
+            <span>${h(c.item)}${c.wishlist_item_id ? '<span class="wishlist-badge">Wunschliste</span>' : ''}</span>
             ${editable ? `
             <div class="card-actions">
               <button class="btn btn-edit"   onclick="editRecord('contrib','${c.id}')"   title="Bearbeiten">${ICON_EDIT}</button>
@@ -342,23 +375,37 @@
     function openContributionForm(contrib = null, prefillFamily = '') {
       editingContribId = contrib?.id ?? null;
       document.getElementById('contrib-modal-title').textContent = contrib ? 'Eintrag bearbeiten' : 'Was mitbringen?';
-      document.getElementById('c-family').value = contrib?.family_name || prefillFamily || '';
-      document.getElementById('c-quantity').value = contrib?.quantity || '';
-      document.getElementById('c-item').value = contrib?.item || '';
+      document.getElementById('c-family').value   = contrib?.family_name || prefillFamily || '';
+      document.getElementById('c-quantity').value = contrib?.quantity    || '';
+      document.getElementById('c-item').value     = contrib?.item        || '';
+      document.getElementById('c-wishlist-id').value = '';
       openOverlay('contrib-overlay');
       setTimeout(() => document.getElementById(prefillFamily ? 'c-quantity' : 'c-family').focus(), 80);
     }
 
+    function fillFromWishlist(wishlistId, itemName, remaining) {
+      editingContribId = null;
+      document.getElementById('contrib-modal-title').textContent = 'Mitbringen';
+      document.getElementById('c-family').value   = '';
+      document.getElementById('c-quantity').value = remaining;
+      document.getElementById('c-item').value     = itemName;
+      document.getElementById('c-wishlist-id').value = wishlistId;
+      openOverlay('contrib-overlay');
+      setTimeout(() => document.getElementById('c-family').focus(), 80);
+    }
+
     async function saveContribution() {
       const family_name = document.getElementById('c-family').value.trim();
-      const item = document.getElementById('c-item').value.trim();
+      const item        = document.getElementById('c-item').value.trim();
       if (!family_name || !item) { toast('Bitte Familie und Inhalt ausfüllen', 'error'); return; }
 
+      const wishlist_item_id = document.getElementById('c-wishlist-id').value || null;
       const row = {
         year: CURRENT_YEAR,
         family_name,
         quantity: document.getElementById('c-quantity').value.trim() || null,
         item,
+        wishlist_item_id,
       };
 
       const { error } = editingContribId
@@ -367,8 +414,106 @@
 
       if (error) { toast('Fehler beim Speichern', 'error'); return; }
       closeOverlay('contrib-overlay');
-      toast('Gespeichert ✓', 'success');
+      toast('Gespeichert', 'success');
       loadContributions();
+      loadWishlist();
+    }
+
+    // ════════════════════════════════════
+    //  WUNSCHLISTE
+    // ════════════════════════════════════
+    let editingWishlistId = null;
+
+    async function loadWishlist(contribData = null) {
+      if (!configured) return;
+
+      const [r1, r2] = await Promise.all([
+        db.from('wishlist').select('*').eq('year', CURRENT_YEAR).order('created_at'),
+        contribData
+          ? Promise.resolve({ data: contribData })
+          : db.from('contributions').select('wishlist_item_id, quantity').eq('year', CURRENT_YEAR)
+      ]);
+
+      const items   = r1.data || [];
+      const contribs = r2.data || [];
+
+      // Bereits zugesagte Menge pro Wunschlisten-Item summieren
+      const committed = {};
+      contribs.forEach(c => {
+        if (!c.wishlist_item_id) return;
+        committed[c.wishlist_item_id] = (committed[c.wishlist_item_id] || 0) + (parseInt(c.quantity) || 0);
+      });
+
+      const list = document.getElementById('wishlist-list');
+      if (!items.length) {
+        list.innerHTML = `<p style="font-size:0.82rem;color:var(--gray);margin-bottom:8px">Noch keine Wünsche eingetragen.</p>`;
+        return;
+      }
+
+      const active = items.filter(i => (committed[i.id] || 0) < i.quantity_needed);
+      const done   = items.filter(i => (committed[i.id] || 0) >= i.quantity_needed);
+
+      list.innerHTML = [...active, ...done].map(item => {
+        const got       = committed[item.id] || 0;
+        const remaining = item.quantity_needed - got;
+        const isDone    = remaining <= 0;
+
+        return `
+        <div class="wishlist-card${isDone ? ' done' : ''}">
+          <div>
+            <div class="wishlist-name">${h(item.item)}</div>
+            <div class="wishlist-meta">Benötigt: ${item.quantity_needed} · Zugesagt: ${got}</div>
+            ${isDone
+              ? `<div class="wishlist-done-label">Vollständig gedeckt</div>`
+              : `<div class="wishlist-remaining">Noch offen: ${remaining}</div>`}
+          </div>
+          <div class="wishlist-actions">
+            ${!isDone ? `<button class="btn btn-primary btn-sm" onclick="fillFromWishlist('${item.id}','${h(item.item)}',${remaining})">Ich bringe mit</button>` : ''}
+            <div style="display:flex;gap:4px">
+              <button class="btn btn-edit"   onclick="editWishlistItem('${item.id}')" title="Bearbeiten">${ICON_EDIT}</button>
+              <button class="btn btn-delete" onclick="deleteWishlistItem('${item.id}','${h(item.item)}')" title="Löschen">${ICON_DELETE}</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function openWishlistForm(item = null) {
+      editingWishlistId = item?.id ?? null;
+      document.getElementById('wishlist-modal-title').textContent = item ? 'Wunsch bearbeiten' : 'Wunsch hinzufügen';
+      document.getElementById('w-item').value     = item?.item            || '';
+      document.getElementById('w-quantity').value = item?.quantity_needed || '';
+      openOverlay('wishlist-overlay');
+      setTimeout(() => document.getElementById('w-item').focus(), 80);
+    }
+
+    async function editWishlistItem(id) {
+      const { data } = await db.from('wishlist').select('*').eq('id', id).single();
+      openWishlistForm(data);
+    }
+
+    async function deleteWishlistItem(id, name) {
+      if (!confirm(`"${name}" aus der Wunschliste löschen?`)) return;
+      const { error } = await db.from('wishlist').delete().eq('id', id);
+      if (error) { toast('Fehler beim Löschen', 'error'); return; }
+      toast('Gelöscht', 'success');
+      loadWishlist();
+    }
+
+    async function saveWishlistItem() {
+      const item            = document.getElementById('w-item').value.trim();
+      const quantity_needed = parseInt(document.getElementById('w-quantity').value);
+      if (!item || !quantity_needed) { toast('Bitte alle Felder ausfüllen', 'error'); return; }
+
+      const row = { year: CURRENT_YEAR, item, quantity_needed };
+      const { error } = editingWishlistId
+        ? await db.from('wishlist').update(row).eq('id', editingWishlistId)
+        : await db.from('wishlist').insert(row);
+
+      if (error) { toast('Fehler beim Speichern', 'error'); return; }
+      closeOverlay('wishlist-overlay');
+      toast('Gespeichert', 'success');
+      loadWishlist();
     }
 
     // ════════════════════════════════════
