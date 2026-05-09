@@ -317,6 +317,44 @@ nav.tabs {
 }
 
 /* ── Config warning ── */
+/* ── Copy from previous year ── */
+.copy-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.copy-select-all {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: var(--gray);
+  cursor: pointer;
+}
+
+.copy-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--gray-light);
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.copy-row:last-child { border-bottom: none; }
+
+.copy-row input[type="checkbox"] {
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--green);
+  width: 16px;
+  height: 16px;
+}
+
 /* ── Wishlist ── */
 .section-row {
   display: flex;

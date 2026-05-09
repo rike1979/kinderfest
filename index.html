@@ -36,7 +36,10 @@
     <div class="section" id="tab-contributions">
       <div class="section-row">
         <span class="section-label">Was wird noch gebraucht</span>
-        <button class="btn btn-primary btn-sm" onclick="openWishlistForm()">+ Wunsch</button>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secondary btn-sm" onclick="openCopyModal()">Vom Vorjahr</button>
+          <button class="btn btn-primary btn-sm" onclick="openWishlistForm()">+ Wunsch</button>
+        </div>
       </div>
       <div id="wishlist-list"></div>
 
@@ -153,6 +156,23 @@
       <div class="modal-foot">
         <button class="btn btn-secondary" onclick="closeOverlay('wishlist-overlay')">Abbrechen</button>
         <button class="btn btn-primary" onclick="saveWishlistItem()">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Copy from previous year -->
+  <div class="overlay" id="copy-overlay">
+    <div class="modal" style="max-width:560px">
+      <div class="modal-head">
+        <h2>Vom Vorjahr übernehmen</h2>
+        <button class="modal-close" onclick="closeOverlay('copy-overlay')">✕</button>
+      </div>
+      <div class="modal-body" id="copy-modal-body">
+        <p style="color:var(--gray);font-size:0.88rem">Lade Vorjahresdaten …</p>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-secondary" onclick="closeOverlay('copy-overlay')">Abbrechen</button>
+        <button class="btn btn-primary" onclick="copySelected()">Übernehmen</button>
       </div>
     </div>
   </div>
@@ -624,6 +644,107 @@
         document.getElementById('g-bedding').value   = '-';
       }
     });
+
+    // ════════════════════════════════════
+    //  VOM VORJAHR ÜBERNEHMEN
+    // ════════════════════════════════════
+    const PREV_YEAR = CURRENT_YEAR - 1;
+
+    async function openCopyModal() {
+      openOverlay('copy-overlay');
+      const body = document.getElementById('copy-modal-body');
+      body.innerHTML = `<p style="color:var(--gray);font-size:0.88rem">Lade Vorjahresdaten …</p>`;
+
+      const [rW, rC] = await Promise.all([
+        db.from('wishlist').select('*').eq('year', PREV_YEAR).order('created_at'),
+        db.from('contributions').select('*').eq('year', PREV_YEAR).order('family_name').order('created_at'),
+      ]);
+
+      const wishlistItems = rW.data || [];
+      const contribs      = rC.data || [];
+
+      if (!wishlistItems.length && !contribs.length) {
+        body.innerHTML = `<p style="color:var(--gray);font-size:0.9rem;text-align:center;padding:16px 0">
+          Keine Daten aus ${PREV_YEAR} gefunden.</p>`;
+        return;
+      }
+
+      let html = '';
+
+      if (wishlistItems.length) {
+        html += `
+        <div class="copy-section">
+          <div class="copy-section-head">
+            <span class="section-label">Wunschliste ${PREV_YEAR}</span>
+            <label class="copy-select-all">
+              <input type="checkbox" onchange="toggleAll('copy-wish', this.checked)"> Alle
+            </label>
+          </div>
+          ${wishlistItems.map(w => `
+          <label class="copy-row">
+            <input type="checkbox" class="copy-wish" data-id="${w.id}"
+              data-item="${h(w.item)}" data-qty="${w.quantity_needed}" checked>
+            <span>${h(w.item)} <span style="color:var(--gray);font-size:0.82rem">(${w.quantity_needed} benötigt)</span></span>
+          </label>`).join('')}
+        </div>`;
+      }
+
+      if (contribs.length) {
+        html += `
+        <div class="copy-section" ${wishlistItems.length ? 'style="margin-top:16px"' : ''}>
+          <div class="copy-section-head">
+            <span class="section-label">Mitbringliste ${PREV_YEAR}</span>
+            <label class="copy-select-all">
+              <input type="checkbox" onchange="toggleAll('copy-contrib', this.checked)"> Alle
+            </label>
+          </div>
+          ${contribs.map(c => `
+          <label class="copy-row">
+            <input type="checkbox" class="copy-contrib" data-family="${h(c.family_name)}"
+              data-qty="${h(c.quantity || '')}" data-item="${h(c.item)}" checked>
+            <span>
+              <strong>${h(c.family_name)}</strong>
+              ${c.quantity ? `· ${h(c.quantity)}× ` : '· '}${h(c.item)}
+            </span>
+          </label>`).join('')}
+        </div>`;
+      }
+
+      body.innerHTML = html;
+    }
+
+    function toggleAll(cls, checked) {
+      document.querySelectorAll('.' + cls).forEach(cb => cb.checked = checked);
+    }
+
+    async function copySelected() {
+      const wishRows    = [...document.querySelectorAll('.copy-wish:checked')].map(cb => ({
+        year: CURRENT_YEAR,
+        item: cb.dataset.item,
+        quantity_needed: parseInt(cb.dataset.qty),
+      }));
+      const contribRows = [...document.querySelectorAll('.copy-contrib:checked')].map(cb => ({
+        year: CURRENT_YEAR,
+        family_name: cb.dataset.family,
+        quantity: cb.dataset.qty || null,
+        item: cb.dataset.item,
+      }));
+
+      if (!wishRows.length && !contribRows.length) {
+        toast('Nichts ausgewählt', 'error'); return;
+      }
+
+      const inserts = [];
+      if (wishRows.length)    inserts.push(db.from('wishlist').insert(wishRows));
+      if (contribRows.length) inserts.push(db.from('contributions').insert(contribRows));
+
+      const results = await Promise.all(inserts);
+      if (results.some(r => r.error)) { toast('Fehler beim Übernehmen', 'error'); return; }
+
+      closeOverlay('copy-overlay');
+      toast(`${wishRows.length + contribRows.length} Einträge übernommen`, 'success');
+      loadContributions();
+    }
 
     // ── Init ──
     loadGuests();
