@@ -338,7 +338,7 @@
       document.getElementById('c-quantity').value = contrib?.quantity || '';
       document.getElementById('c-item').value = contrib?.item || '';
       openOverlay('contrib-overlay');
-      setTimeout(() => document.getElementById(prefillFamily ? 'c-item' : 'c-family').focus(), 80);
+      setTimeout(() => document.getElementById(prefillFamily ? 'c-quantity' : 'c-family').focus(), 80);
     }
 
     async function saveContribution() {
