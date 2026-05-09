@@ -168,12 +168,16 @@ nav.tabs {
   background: var(--green-light);
   color: var(--green-dark);
   border: 1.5px solid var(--green);
+  padding: 6px 8px;
+  line-height: 0;
 }
 
 .btn-delete {
   background: #fee2e2;
   color: var(--red);
   border: 1.5px solid var(--red);
+  padding: 6px 8px;
+  line-height: 0;
 }
 
 .btn-add {
