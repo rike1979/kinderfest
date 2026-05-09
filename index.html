@@ -112,7 +112,8 @@
       <div class="modal-body">
         <div class="form-group">
           <label>Familienname *</label>
-          <input id="c-family" type="text" placeholder="z. B. Müller">
+          <input id="c-family" type="text" list="family-names-list" placeholder="Familienname auswählen oder eingeben">
+          <datalist id="family-names-list"></datalist>
         </div>
         <div class="form-group">
           <label>Menge / Anzahl</label>
@@ -324,12 +325,18 @@
     // ════════════════════════════════════
     //  CONTRIBUTIONS (aktuelles Jahr)
     // ════════════════════════════════════
+    async function loadFamilyNames() {
+      if (!configured) return;
+      const { data } = await db.from('guests').select('family_name').eq('year', CURRENT_YEAR);
+      const dl = document.getElementById('family-names-list');
+      if (dl && data) dl.innerHTML = data.map(g => `<option value="${h(g.family_name)}">`).join('');
+    }
+
     async function loadContributions() {
       if (!configured) return;
       const { data, error } = await db.from('contributions').select('*')
         .eq('year', CURRENT_YEAR).order('family_name').order('created_at');
       if (error) { toast('Fehler beim Laden', 'error'); return; }
-      loadWishlist(data);
 
       document.getElementById('contrib-summary').textContent =
         data.length ? `${data.length} ${data.length !== 1 ? 'Einträge' : 'Eintrag'}` : '';
@@ -337,9 +344,10 @@
       const list = document.getElementById('contributions-list');
       if (!data.length) {
         list.innerHTML = `<div class="empty"><p>Noch nichts eingetragen.<br>Wer bringt was mit?</p></div>`;
-        return;
+      } else {
+        list.innerHTML = renderContribGroups(data, true);
       }
-      list.innerHTML = renderContribGroups(data, true);
+      loadWishlist(data);
     }
 
     function renderContribGroups(data, editable) {
@@ -415,8 +423,7 @@
       if (error) { toast('Fehler beim Speichern', 'error'); return; }
       closeOverlay('contrib-overlay');
       toast('Gespeichert', 'success');
-      loadContributions();
-      loadWishlist();
+      await loadContributions();
     }
 
     // ════════════════════════════════════
@@ -613,6 +620,7 @@
     // ── Init ──
     loadGuests();
     loadContributions();
+    loadFamilyNames();
   </script>
 </body>
 
