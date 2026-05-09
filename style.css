@@ -474,7 +474,7 @@ nav.tabs {
 @media (min-width: 640px) {
   .contrib-body {
     column-count: 2;
-    column-gap: 0;
+    column-gap: 20px;
     column-rule: 1px solid var(--border);
   }
 
