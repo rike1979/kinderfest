@@ -484,15 +484,12 @@
         const isDone    = remaining <= 0;
         const details   = committedDetails[item.id] || [];
 
-        const detailHtml = details.length ? `
-          <div class="wishlist-details">
-            <span class="wishlist-detail-info">${details.map(d => {
-              const prefix = item.item + ' - ';
-              const label  = d.item.startsWith(prefix) ? d.item.slice(prefix.length) : d.item;
-              const qty    = d.quantity && /^\d/.test(d.quantity) && parseInt(d.quantity) > 1 ? `${d.quantity}× ` : '';
-              return qty + h(label);
-            }).join(' · ')}</span>
-          </div>` : '';
+        const detailStr = details.length ? details.map(d => {
+          const prefix = item.item + ' - ';
+          const label  = d.item.startsWith(prefix) ? d.item.slice(prefix.length) : d.item;
+          const qty    = d.quantity && /^\d/.test(d.quantity) && parseInt(d.quantity) > 1 ? `${d.quantity}× ` : '';
+          return qty + h(label);
+        }).join(' · ') : '';
 
         return `
         <div class="wishlist-card${isDone ? ' done' : ''}">
@@ -503,8 +500,9 @@
               <button class="btn btn-delete" onclick="deleteWishlistItem('${item.id}','${h(item.item)}')" title="Löschen">${ICON_DELETE}</button>
             </div>
           </div>
-          <div class="wishlist-meta">Gesamtbedarf: ${item.quantity_needed} · Bereits zugesagt: ${got}</div>
-          ${detailHtml}
+          <div class="wishlist-meta">
+            Gesamtbedarf: ${item.quantity_needed} · Zugesagt: ${got}${detailStr ? ` — <span class="wishlist-detail-info">${detailStr}</span>` : ''}
+          </div>
           ${isDone
             ? `<div class="wishlist-done-label">Vollständig gedeckt</div>`
             : `<div class="wishlist-bottom">

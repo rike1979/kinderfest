@@ -388,16 +388,8 @@ nav.tabs {
   margin-bottom: 4px;
 }
 
-.wishlist-details {
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid var(--border);
-}
-
 .wishlist-detail-info {
-  font-size: 0.75rem;
   color: var(--gray);
-  line-height: 1.4;
 }
 
 .wishlist-bottom {
