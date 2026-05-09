@@ -293,7 +293,7 @@
       if (error) { toast('Fehler beim Laden', 'error'); return; }
 
       document.getElementById('contrib-summary').textContent =
-        data.length ? `${data.length} Eintrag${data.length !== 1 ? '·e' : ''}` : '';
+        data.length ? `${data.length} ${data.length !== 1 ? 'Einträge' : 'Eintrag'}` : '';
 
       const list = document.getElementById('contributions-list');
       if (!data.length) {
