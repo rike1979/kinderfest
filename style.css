@@ -90,10 +90,11 @@ nav.tabs {
   display: block;
 }
 
-/* ── Add button ── */
+/* ── Add button (spans full width even in grid) ── */
 .add-btn {
   display: block;
   width: 100%;
+  grid-column: 1 / -1;
   padding: 13px;
   background: var(--green);
   color: #fff;
@@ -116,6 +117,7 @@ nav.tabs {
   color: var(--gray);
   margin-bottom: 10px;
   padding-left: 2px;
+  grid-column: 1 / -1;
 }
 
 /* ── Cards ── */
@@ -441,7 +443,29 @@ nav.tabs {
   margin: 20px 0 8px;
   padding-top: 20px;
   border-top: 2px solid var(--border);
+  grid-column: 1 / -1;
 }
+
+/* ── 2-column grids ── */
+#wishlist-list,
+#contributions-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+#wishlist-list .wishlist-card,
+#contributions-list .card {
+  margin-bottom: 0;
+}
+
+#wishlist-list > p,
+#wishlist-list > .empty,
+#contributions-list > .empty {
+  grid-column: 1 / -1;
+}
+
 
 /* ── Config warning ── */
 .config-warn {
