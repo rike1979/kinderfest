@@ -449,9 +449,15 @@ nav.tabs {
 /* ── 2-column grids ── */
 #wishlist-list {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 12px;
   align-items: start;
+}
+
+@media (min-width: 640px) {
+  #wishlist-list {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 #wishlist-list .wishlist-card {
