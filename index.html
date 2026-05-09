@@ -509,7 +509,10 @@
             </div>
           </div>
           <div class="wishlist-meta">Gesamtbedarf: ${item.quantity_needed}</div>
-          ${got > 0 ? `<div class="wishlist-meta">Zugesagt: ${got}${detailStr ? `: <span class="wishlist-detail-info">${detailStr}</span>` : ''}</div>` : ''}
+          ${got > 0 ? `<div class="wishlist-zugesagt">
+            <span class="wishlist-zugesagt-label">Zugesagt: ${got}${detailStr ? ':' : ''}</span>
+            ${detailStr ? `<span class="wishlist-detail-info">${detailStr}</span>` : ''}
+          </div>` : ''}
           ${isDone
             ? `<div class="wishlist-done-label">Vollständig gedeckt</div>`
             : `<div class="wishlist-bottom">

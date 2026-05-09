@@ -388,6 +388,18 @@ nav.tabs {
   margin-bottom: 4px;
 }
 
+.wishlist-zugesagt {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--gray);
+}
+
+.wishlist-zugesagt-label {
+  flex-shrink: 0;
+}
+
 .wishlist-detail-info {
   color: var(--gray);
 }
