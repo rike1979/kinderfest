@@ -100,6 +100,41 @@ git push
 
 GitHub Pages aktualisiert sich automatisch.
 
+### Feature-Branch lokal testen (ohne main zu berühren)
+
+```bash
+# Branch wechseln
+git checkout feature/wishlist
+
+# Lokalen Webserver starten (Python ist auf Mac vorinstalliert)
+cd /Users/rike/projects/active/kinderfest
+python3 -m http.server 8080
+```
+
+Dann im Browser öffnen: **http://localhost:8080**
+
+Die App verbindet sich normal mit Supabase — funktioniert identisch zur Live-Version.
+
+```bash
+# Zurück zum Hauptbranch
+git checkout main
+```
+
+> Der `main`-Deploy auf GitHub Pages bleibt immer unangetastet.
+> Andere Branches werden dort ignoriert.
+
+### Feature-Branch in main übernehmen
+
+Wenn das Feature fertig und getestet ist:
+
+```bash
+git checkout main
+git merge feature/wishlist
+git push
+```
+
+Danach ist das Feature live auf GitHub Pages.
+
 ---
 
 ## 3. Supabase RLS-Grundmuster
