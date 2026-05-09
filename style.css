@@ -173,6 +173,7 @@ nav.tabs {
 .btn-delete {
   background: #fee2e2;
   color: var(--red);
+  border: 1.5px solid var(--red);
 }
 
 .btn-add {
