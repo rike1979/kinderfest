@@ -485,13 +485,16 @@
         const details   = committedDetails[item.id] || [];
 
         const detailHtml = details.length ? `
-          <ul class="wishlist-details">
-            ${details.map(d => `<li>
-              <span class="wishlist-detail-family">${h(d.family)}</span>
-              ${d.quantity ? `<span class="wishlist-detail-qty">${/^\d/.test(d.quantity) ? d.quantity + '×' : d.quantity}</span>` : ''}
-              ${h(d.item)}
-            </li>`).join('')}
-          </ul>` : '';
+          <div class="wishlist-details">
+            ${details.map(d => {
+              const qty = d.quantity ? (/^\d/.test(d.quantity) ? d.quantity + '×' : d.quantity) : '';
+              const what = d.item !== item.item ? h(d.item) : (qty ? '' : '–');
+              return `<div class="wishlist-detail-row">
+                <span class="wishlist-detail-family">${h(d.family)}</span>
+                <span class="wishlist-detail-info">${qty ? `${qty} ` : ''}${what}</span>
+              </div>`;
+            }).join('')}
+          </div>` : '';
 
         return `
         <div class="wishlist-card${isDone ? ' done' : ''}">
