@@ -475,7 +475,12 @@ nav.tabs {
   .contrib-body {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    column-gap: 12px;
+    column-gap: 0;
+  }
+
+  .contrib-body .contrib-row:nth-child(even) {
+    border-left: 1px solid var(--border);
+    padding-left: 10px;
   }
 
   .contrib-body .contrib-row:last-child,
