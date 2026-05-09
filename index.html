@@ -210,8 +210,7 @@
 
       const list = document.getElementById('guests-list');
       if (!data.length) {
-        list.innerHTML = `<div class="empty"><div class="empty-icon">🏡</div>
-      <p>Noch keine Familie eingetragen.<br>Sei die Erste!</p></div>`;
+        list.innerHTML = `<div class="empty"><p>Noch keine Familie eingetragen.<br>Sei die Erste!</p></div>`;
         return;
       }
       list.innerHTML = data.map(g => renderGuestCard(g, true)).join('');
@@ -220,8 +219,8 @@
     function renderGuestCard(g, editable) {
       const actions = editable ? `
     <div class="card-actions">
-      <button class="btn btn-edit"   onclick="editRecord('guest','${g.id}')">✏️ Bearbeiten</button>
-      <button class="btn btn-delete" onclick="deleteRecord('guest','${g.id}','${h(g.family_name)}')">🗑️</button>
+      <button class="btn btn-edit"   onclick="editRecord('guest','${g.id}')">Bearbeiten</button>
+      <button class="btn btn-delete" onclick="deleteRecord('guest','${g.id}','${h(g.family_name)}')">Löschen</button>
     </div>` : `<span class="readonly-badge">nur lesen</span>`;
 
       return `
@@ -275,7 +274,7 @@
 
       if (error) { toast('Fehler beim Speichern', 'error'); return; }
       closeOverlay('guest-overlay');
-      toast(editingGuestId ? 'Eintrag aktualisiert ✓' : 'Familie eingetragen! 🎉', 'success');
+      toast(editingGuestId ? 'Eintrag aktualisiert' : 'Familie eingetragen!', 'success');
       loadGuests();
     }
 
@@ -293,8 +292,7 @@
 
       const list = document.getElementById('contributions-list');
       if (!data.length) {
-        list.innerHTML = `<div class="empty"><div class="empty-icon">🎂</div>
-      <p>Noch nichts eingetragen.<br>Wer bringt was mit?</p></div>`;
+        list.innerHTML = `<div class="empty"><p>Noch nichts eingetragen.<br>Wer bringt was mit?</p></div>`;
         return;
       }
       list.innerHTML = renderContribGroups(data, true);
@@ -323,8 +321,8 @@
             </span>
             ${editable ? `
             <div class="card-actions">
-              <button class="btn btn-edit"   onclick="editRecord('contrib','${c.id}')">✏️</button>
-              <button class="btn btn-delete" onclick="deleteRecord('contrib','${c.id}','${h(family)}')">🗑️</button>
+              <button class="btn btn-edit"   onclick="editRecord('contrib','${c.id}')">Bearbeiten</button>
+              <button class="btn btn-delete" onclick="deleteRecord('contrib','${c.id}','${h(family)}')">Löschen</button>
             </div>` : ''}
           </div>`).join('')}
       </div>
@@ -379,7 +377,7 @@
       if (!years.length) {
         picker.innerHTML = '';
         document.getElementById('archive-content').innerHTML =
-          `<div class="empty"><div class="empty-icon">📦</div><p>Noch kein vergangenes Fest im Archiv.</p></div>`;
+          `<div class="empty"><p>Noch kein vergangenes Fest im Archiv.</p></div>`;
         return;
       }
 
@@ -399,7 +397,7 @@
       });
 
       const content = document.getElementById('archive-content');
-      content.innerHTML = `<div class="empty"><div class="empty-icon">⏳</div><p>Lade …</p></div>`;
+      content.innerHTML = `<div class="empty"><p>Lade …</p></div>`;
 
       const [r1, r2] = await Promise.all([
         db.from('guests').select('*').eq('year', year).order('created_at'),
@@ -411,14 +409,14 @@
 
       let html = '';
 
-      html += `<p class="archive-section-title">🏠 Anreise &amp; Unterkunft ${year}</p>`;
+      html += `<p class="archive-section-title">Anreise &amp; Unterkunft ${year}</p>`;
       if (guests.length) {
         html += guests.map(g => renderGuestCard(g, false)).join('');
       } else {
         html += `<div class="empty" style="padding:20px"><p>Keine Einträge.</p></div>`;
       }
 
-      html += `<p class="archive-section-title" style="margin-top:24px">🍰 Mitbringliste ${year}</p>`;
+      html += `<p class="archive-section-title" style="margin-top:24px">Mitbringliste ${year}</p>`;
       if (contribs.length) {
         html += renderContribGroups(contribs, false);
       } else {
