@@ -140,13 +140,14 @@
         <button class="modal-close" onclick="closeOverlay('wishlist-overlay')">✕</button>
       </div>
       <div class="modal-body">
+        <p class="hint" style="margin-bottom:12px">Hier trägst du ein, was insgesamt gebraucht wird — nicht was du selbst mitbringst.</p>
         <div class="form-group">
           <label>Was wird gebraucht? *</label>
           <input id="w-item" type="text" placeholder="z. B. Äpfel, Tischdecken, Kerzen">
         </div>
         <div class="form-group">
-          <label>Menge (Anzahl) *</label>
-          <input id="w-quantity" type="number" min="1" placeholder="z. B. 10">
+          <label>Gesamtmenge *</label>
+          <input id="w-quantity" type="number" min="1" placeholder="z. B. 25">
         </div>
       </div>
       <div class="modal-foot">
@@ -467,20 +468,20 @@
 
         return `
         <div class="wishlist-card${isDone ? ' done' : ''}">
-          <div>
-            <div class="wishlist-name">${h(item.item)}</div>
-            <div class="wishlist-meta">Benötigt: ${item.quantity_needed} · Zugesagt: ${got}</div>
-            ${isDone
-              ? `<div class="wishlist-done-label">Vollständig gedeckt</div>`
-              : `<div class="wishlist-remaining">Noch offen: ${remaining}</div>`}
-          </div>
-          <div class="wishlist-actions">
-            ${!isDone ? `<button class="btn btn-primary btn-sm" onclick="fillFromWishlist('${item.id}','${h(item.item)}',${remaining})">Ich bringe mit</button>` : ''}
-            <div style="display:flex;gap:4px">
-              <button class="btn btn-edit"   onclick="editWishlistItem('${item.id}')" title="Bearbeiten">${ICON_EDIT}</button>
+          <div class="wishlist-card-top">
+            <span class="wishlist-name">${h(item.item)}</span>
+            <div style="display:flex;gap:4px;flex-shrink:0">
+              <button class="btn btn-edit"   onclick="editWishlistItem('${item.id}')" title="Gesamtbedarf ändern">${ICON_EDIT}</button>
               <button class="btn btn-delete" onclick="deleteWishlistItem('${item.id}','${h(item.item)}')" title="Löschen">${ICON_DELETE}</button>
             </div>
           </div>
+          <div class="wishlist-meta">Gesamtbedarf: ${item.quantity_needed} · Bereits zugesagt: ${got}</div>
+          ${isDone
+            ? `<div class="wishlist-done-label">Vollständig gedeckt</div>`
+            : `<div class="wishlist-bottom">
+                <span class="wishlist-remaining">Noch offen: ${remaining}</span>
+                <button class="btn btn-primary btn-sm" onclick="fillFromWishlist('${item.id}','${h(item.item)}',${remaining})">Ich bringe mit</button>
+               </div>`}
         </div>`;
       }).join('');
     }
