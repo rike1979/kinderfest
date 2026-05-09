@@ -353,8 +353,8 @@ nav.tabs {
 }
 
 .wishlist-card.done {
-  border-left-color: #9ca3af;
-  opacity: 0.6;
+  border-left-color: #16a34a;
+  background: #f0fdf4;
 }
 
 .wishlist-name {
@@ -378,7 +378,7 @@ nav.tabs {
 .wishlist-done-label {
   font-size: 0.78rem;
   font-weight: 700;
-  color: #9ca3af;
+  color: #16a34a;
   margin-top: 3px;
 }
 
