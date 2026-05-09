@@ -321,7 +321,7 @@
       <div class="card-body">
         ${items.map(c => `
           <div class="contrib-row">
-            <span class="contrib-qty">${c.quantity ? `${h(c.quantity)}×` : ''}</span>
+            <span class="contrib-qty">${c.quantity ? ((/^\d/.test(c.quantity) ? `${h(c.quantity)}×` : h(c.quantity))) : ''}</span>
             <span>${h(c.item)}</span>
             ${editable ? `
             <div class="card-actions">
