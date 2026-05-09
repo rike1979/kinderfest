@@ -378,7 +378,10 @@
         ${items.map(c => `
           <div class="contrib-row">
             <span class="contrib-qty">${c.quantity ? ((/^\d/.test(c.quantity) ? `${h(c.quantity)}×` : h(c.quantity))) : ''}</span>
-            <span>${h(c.item)}${c.wishlist_item_id ? '<span class="wishlist-badge">Wunschliste</span>' : ''}</span>
+            <span class="contrib-item-wrap">
+              <span>${h(c.item)}</span>
+              ${c.wishlist_item_id ? '<span class="wishlist-badge">Wunschliste</span>' : ''}
+            </span>
             ${editable ? `
             <div class="card-actions">
               <button class="btn btn-edit"   onclick="editRecord('contrib','${c.id}')"   title="Bearbeiten">${ICON_EDIT}</button>
