@@ -123,27 +123,6 @@
     </div>
   </div>
 
-  <!-- Auth (Familienname-Check) -->
-  <div class="overlay" id="auth-overlay">
-    <div class="modal">
-      <div class="modal-head">
-        <h2 id="auth-title">Bestätigen</h2>
-        <button class="modal-close" onclick="closeOverlay('auth-overlay')">✕</button>
-      </div>
-      <div class="modal-body">
-        <p class="auth-desc" id="auth-desc">Gib den Familiennamen ein, um fortzufahren.</p>
-        <div class="form-group">
-          <label>Familienname</label>
-          <input id="auth-name" type="text" placeholder="Familienname">
-        </div>
-      </div>
-      <div class="modal-foot">
-        <button class="btn btn-secondary" onclick="closeOverlay('auth-overlay')">Abbrechen</button>
-        <button class="btn btn-danger" id="auth-btn">Bestätigen</button>
-      </div>
-    </div>
-  </div>
-
   <div id="toast"></div>
 
   <script>
@@ -174,7 +153,6 @@
     // ── State ──
     let editingGuestId = null;
     let editingContribId = null;
-    let pendingAuth = null;
     let activeArchiveYear = null;
 
     // ── Tabs ──
@@ -242,8 +220,8 @@
     function renderGuestCard(g, editable) {
       const actions = editable ? `
     <div class="card-actions">
-      <button class="btn btn-edit"   onclick="authThen('edit','guest','${g.id}','${h(g.family_name)}')">✏️ Bearbeiten</button>
-      <button class="btn btn-delete" onclick="authThen('delete','guest','${g.id}','${h(g.family_name)}')">🗑️</button>
+      <button class="btn btn-edit"   onclick="editRecord('guest','${g.id}')">✏️ Bearbeiten</button>
+      <button class="btn btn-delete" onclick="deleteRecord('guest','${g.id}','${h(g.family_name)}')">🗑️</button>
     </div>` : `<span class="readonly-badge">nur lesen</span>`;
 
       return `
@@ -255,9 +233,9 @@
       <div class="card-body">
         <div class="detail-grid">
           <div class="detail-item"><label>Personen</label><span>${h(g.persons) || '–'}</span></div>
+          <div class="detail-item"><label>Kloster</label><span>${h(g.kloster) || '–'}</span></div>
           <div class="detail-item"><label>Anreise</label><span>${h(g.arrival) || '–'}</span></div>
           <div class="detail-item"><label>Abreise</label><span>${h(g.departure) || '–'}</span></div>
-          <div class="detail-item"><label>Kloster</label><span>${h(g.kloster) || '–'}</span></div>
           ${g.bedding ? `<div class="detail-item full-width"><label>Bettwäsche / Handtücher</label><span>${h(g.bedding)}</span></div>` : ''}
         </div>
       </div>
@@ -345,8 +323,8 @@
             </span>
             ${editable ? `
             <div class="card-actions">
-              <button class="btn btn-edit"   onclick="authThen('edit','contrib','${c.id}','${h(family)}')">✏️</button>
-              <button class="btn btn-delete" onclick="authThen('delete','contrib','${c.id}','${h(family)}')">🗑️</button>
+              <button class="btn btn-edit"   onclick="editRecord('contrib','${c.id}')">✏️</button>
+              <button class="btn btn-delete" onclick="deleteRecord('contrib','${c.id}','${h(family)}')">🗑️</button>
             </div>` : ''}
           </div>`).join('')}
       </div>
@@ -451,48 +429,22 @@
     }
 
     // ════════════════════════════════════
-    //  AUTH (Familienname-Check)
+    //  BEARBEITEN & LÖSCHEN
     // ════════════════════════════════════
-    function authThen(action, type, id, expectedName) {
-      pendingAuth = { action, type, id, expectedName };
-      const isDel = action === 'delete';
-      document.getElementById('auth-title').textContent = isDel ? 'Eintrag löschen' : 'Eintrag bearbeiten';
-      document.getElementById('auth-desc').textContent =
-        `Gib den Familiennamen ein, um den Eintrag von Familie ${expectedName} zu ${isDel ? 'löschen' : 'bearbeiten'}.`;
-      document.getElementById('auth-btn').textContent = isDel ? 'Löschen' : 'Bearbeiten';
-      document.getElementById('auth-btn').className = 'btn ' + (isDel ? 'btn-danger' : 'btn-primary');
-      document.getElementById('auth-name').value = '';
-      openOverlay('auth-overlay');
-      setTimeout(() => document.getElementById('auth-name').focus(), 80);
+    async function editRecord(type, id) {
+      const table = type === 'guest' ? 'guests' : 'contributions';
+      const { data, error } = await db.from(table).select('*').eq('id', id).single();
+      if (error) { toast('Fehler beim Laden', 'error'); return; }
+      type === 'guest' ? openGuestForm(data) : openContributionForm(data);
     }
 
-    document.getElementById('auth-btn').addEventListener('click', runAuth);
-    document.getElementById('auth-name').addEventListener('keydown', e => { if (e.key === 'Enter') runAuth(); });
-
-    async function runAuth() {
-      const entered = document.getElementById('auth-name').value.trim().toLowerCase();
-      const expected = (pendingAuth?.expectedName || '').toLowerCase();
-
-      if (entered !== expected) {
-        toast('Familienname stimmt nicht überein', 'error');
-        document.getElementById('auth-name').select();
-        return;
-      }
-
-      closeOverlay('auth-overlay');
-      const { action, type, id } = pendingAuth;
+    async function deleteRecord(type, id, name) {
+      if (!confirm(`Eintrag von Familie ${name} wirklich löschen?`)) return;
       const table = type === 'guest' ? 'guests' : 'contributions';
-
-      if (action === 'delete') {
-        const { error } = await db.from(table).delete().eq('id', id);
-        if (error) { toast('Fehler beim Löschen', 'error'); return; }
-        toast('Eintrag gelöscht', 'success');
-        type === 'guest' ? loadGuests() : loadContributions();
-      } else {
-        const { data, error } = await db.from(table).select('*').eq('id', id).single();
-        if (error) { toast('Fehler beim Laden', 'error'); return; }
-        type === 'guest' ? openGuestForm(data) : openContributionForm(data);
-      }
+      const { error } = await db.from(table).delete().eq('id', id);
+      if (error) { toast('Fehler beim Löschen', 'error'); return; }
+      toast('Eintrag gelöscht', 'success');
+      type === 'guest' ? loadGuests() : loadContributions();
     }
 
     // ── Init ──
