@@ -487,8 +487,10 @@
         const detailHtml = details.length ? `
           <div class="wishlist-details">
             <span class="wishlist-detail-info">${details.map(d => {
-              const qty = d.quantity && /^\d/.test(d.quantity) && parseInt(d.quantity) > 1 ? `${d.quantity}× ` : '';
-              return qty + h(d.item);
+              const prefix = item.item + ' - ';
+              const label  = d.item.startsWith(prefix) ? d.item.slice(prefix.length) : d.item;
+              const qty    = d.quantity && /^\d/.test(d.quantity) && parseInt(d.quantity) > 1 ? `${d.quantity}× ` : '';
+              return qty + h(label);
             }).join(' · ')}</span>
           </div>` : '';
 
