@@ -366,7 +366,14 @@
         groups[c.family_name].push(c);
       });
 
-      return Object.entries(groups).map(([family, items]) => `
+      return Object.entries(groups).map(([family, items]) => {
+        items.sort((a, b) => {
+          const aW = !!a.wishlist_item_id, bW = !!b.wishlist_item_id;
+          if (aW !== bW) return aW ? -1 : 1;
+          if (aW && bW) return a.item.localeCompare(b.item, 'de');
+          return 0;
+        });
+        return `
     <div class="card">
       <div class="card-header">
         <span class="family-name">Familie ${h(family)}</span>
@@ -389,7 +396,8 @@
             </div>` : '<span></span>'}
           </div>`).join('')}
       </div>
-    </div>`).join('');
+    </div>`;
+      }).join('');
     }
 
     function openContributionForm(contrib = null, prefillFamily = '') {
