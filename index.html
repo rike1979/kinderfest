@@ -395,8 +395,8 @@
       document.getElementById('c-family').value      = contrib?.family_name || prefillFamily || '';
       document.getElementById('c-quantity').value    = contrib?.quantity    || '';
       document.getElementById('c-item').value        = contrib?.item        || '';
-      document.getElementById('c-wishlist-id').value = '';
-      document.getElementById('c-item-hint').style.display = 'none';
+      document.getElementById('c-wishlist-id').value = contrib?.wishlist_item_id || '';
+      document.getElementById('c-item-hint').style.display = contrib?.wishlist_item_id ? 'block' : 'none';
       openOverlay('contrib-overlay');
       setTimeout(() => document.getElementById(prefillFamily ? 'c-quantity' : 'c-family').focus(), 80);
     }
@@ -459,7 +459,8 @@
       const committed = {};
       contribs.forEach(c => {
         if (!c.wishlist_item_id) return;
-        committed[c.wishlist_item_id] = (committed[c.wishlist_item_id] || 0) + (parseInt(c.quantity) || 0);
+        const qty = !c.quantity ? 0 : (parseInt(c.quantity) || 1);
+        committed[c.wishlist_item_id] = (committed[c.wishlist_item_id] || 0) + qty;
       });
 
       const list = document.getElementById('wishlist-list');
