@@ -474,13 +474,15 @@ nav.tabs {
 @media (min-width: 640px) {
   .contrib-body {
     column-count: 2;
-    column-gap: 20px;
+    column-gap: 24px;
     column-rule: 1px solid var(--border);
   }
 
   .contrib-body .contrib-row {
     break-inside: avoid;
     -webkit-column-break-inside: avoid;
+    padding-right: 10px;
+    padding-left: 2px;
   }
 }
 
