@@ -445,6 +445,16 @@
       type === 'guest' ? loadGuests() : loadContributions();
     }
 
+    // ── Personen = 0 → Felder vorbelegen ──
+    document.getElementById('g-persons').addEventListener('input', function () {
+      if (this.value.trim() === '0') {
+        document.getElementById('g-arrival').value   = '-';
+        document.getElementById('g-departure').value = '-';
+        document.getElementById('g-kloster').value   = 'nein';
+        document.getElementById('g-bedding').value   = '-';
+      }
+    });
+
     // ── Init ──
     loadGuests();
     loadContributions();
