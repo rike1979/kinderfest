@@ -447,22 +447,19 @@ nav.tabs {
 }
 
 /* ── 2-column grids ── */
-#wishlist-list,
-#contributions-list {
+#wishlist-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   align-items: start;
 }
 
-#wishlist-list .wishlist-card,
-#contributions-list .card {
+#wishlist-list .wishlist-card {
   margin-bottom: 0;
 }
 
 #wishlist-list > p,
-#wishlist-list > .empty,
-#contributions-list > .empty {
+#wishlist-list > .empty {
   grid-column: 1 / -1;
 }
 
