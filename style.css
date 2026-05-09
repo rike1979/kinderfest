@@ -417,7 +417,9 @@ nav.tabs {
   text-transform: uppercase;
   letter-spacing: .07em;
   color: var(--gray);
-  margin: 16px 0 8px;
+  margin: 20px 0 8px;
+  padding-top: 20px;
+  border-top: 2px solid var(--border);
 }
 
 /* ── Config warning ── */
