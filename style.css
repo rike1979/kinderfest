@@ -473,23 +473,14 @@ nav.tabs {
 /* ── 2-column items inside family cards (tablet+) ── */
 @media (min-width: 640px) {
   .contrib-body {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    column-count: 2;
     column-gap: 0;
+    column-rule: 1px solid var(--border);
   }
 
-  .contrib-body .contrib-row:nth-child(even) {
-    border-left: 1px solid var(--border);
-    padding-left: 10px;
-  }
-
-  .contrib-body .contrib-row:last-child,
-  .contrib-body .contrib-row:nth-last-child(2):nth-child(odd) {
-    border-bottom: none;
-  }
-
-  .contrib-body .contrib-row:only-child {
-    grid-column: 1 / -1;
+  .contrib-body .contrib-row {
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
   }
 }
 
