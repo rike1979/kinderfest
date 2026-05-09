@@ -204,6 +204,12 @@
         .eq('year', CURRENT_YEAR).order('created_at');
       if (error) { toast('Fehler beim Laden', 'error'); return; }
 
+      data.sort((a, b) => {
+        const aZero = parseInt(a.persons) === 0;
+        const bZero = parseInt(b.persons) === 0;
+        return aZero === bZero ? 0 : aZero ? 1 : -1;
+      });
+
       const total   = data.reduce((s, g) => s + (parseInt(g.persons) || 0), 0);
       const kloster = data.filter(g => g.kloster === 'ja').length;
       document.getElementById('guests-summary').textContent =
