@@ -402,6 +402,7 @@ nav.tabs {
 
 .wishlist-detail-info {
   color: var(--gray);
+  font-size: 0.72rem;
 }
 
 .wishlist-bottom {
