@@ -321,14 +321,13 @@
       <div class="card-body">
         ${items.map(c => `
           <div class="contrib-row">
-            <span class="contrib-text">
-              ${c.quantity ? `<span class="contrib-qty">${h(c.quantity)}×</span>` : ''}${h(c.item)}
-            </span>
+            <span class="contrib-qty">${c.quantity ? `${h(c.quantity)}×` : ''}</span>
+            <span>${h(c.item)}</span>
             ${editable ? `
             <div class="card-actions">
               <button class="btn btn-edit"   onclick="editRecord('contrib','${c.id}')"   title="Bearbeiten">${ICON_EDIT}</button>
               <button class="btn btn-delete" onclick="deleteRecord('contrib','${c.id}','${h(family)}')" title="Löschen">${ICON_DELETE}</button>
-            </div>` : ''}
+            </div>` : '<span></span>'}
           </div>`).join('')}
       </div>
     </div>`).join('');

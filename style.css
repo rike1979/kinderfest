@@ -250,25 +250,22 @@ nav.tabs {
 
 /* ── Contribution rows ── */
 .contrib-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 5rem 1fr auto;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 4px 8px;
   padding: 7px 0;
   border-bottom: 1px solid var(--gray-light);
+  font-size: 0.92rem;
 }
 
 .contrib-row:last-child {
   border-bottom: none;
 }
 
-.contrib-text {
-  font-size: 0.92rem;
-}
-
 .contrib-qty {
   font-weight: 700;
-  margin-right: 4px;
+  white-space: nowrap;
 }
 
 /* ── Archive ── */
