@@ -122,6 +122,7 @@
         <div class="form-group">
           <label>Was? *</label>
           <input id="c-item" type="text" placeholder="z. B. Käsekuchen, Aufstrich, Getränke">
+          <p class="hint" id="c-item-hint" style="display:none">Du kannst den Namen genauer angeben, z. B. „Gemüse – Tomaten"</p>
         </div>
         <input type="hidden" id="c-wishlist-id">
       </div>
@@ -391,10 +392,11 @@
     function openContributionForm(contrib = null, prefillFamily = '') {
       editingContribId = contrib?.id ?? null;
       document.getElementById('contrib-modal-title').textContent = contrib ? 'Eintrag bearbeiten' : 'Was mitbringen?';
-      document.getElementById('c-family').value   = contrib?.family_name || prefillFamily || '';
-      document.getElementById('c-quantity').value = contrib?.quantity    || '';
-      document.getElementById('c-item').value     = contrib?.item        || '';
+      document.getElementById('c-family').value      = contrib?.family_name || prefillFamily || '';
+      document.getElementById('c-quantity').value    = contrib?.quantity    || '';
+      document.getElementById('c-item').value        = contrib?.item        || '';
       document.getElementById('c-wishlist-id').value = '';
+      document.getElementById('c-item-hint').style.display = 'none';
       openOverlay('contrib-overlay');
       setTimeout(() => document.getElementById(prefillFamily ? 'c-quantity' : 'c-family').focus(), 80);
     }
@@ -402,10 +404,11 @@
     function fillFromWishlist(wishlistId, itemName, remaining) {
       editingContribId = null;
       document.getElementById('contrib-modal-title').textContent = 'Mitbringen';
-      document.getElementById('c-family').value   = '';
-      document.getElementById('c-quantity').value = remaining;
-      document.getElementById('c-item').value     = itemName;
+      document.getElementById('c-family').value      = '';
+      document.getElementById('c-quantity').value    = remaining;
+      document.getElementById('c-item').value        = itemName;
       document.getElementById('c-wishlist-id').value = wishlistId;
+      document.getElementById('c-item-hint').style.display = 'block';
       openOverlay('contrib-overlay');
       setTimeout(() => document.getElementById('c-family').focus(), 80);
     }
