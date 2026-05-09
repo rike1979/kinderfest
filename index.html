@@ -201,11 +201,13 @@
         .eq('year', CURRENT_YEAR).order('created_at');
       if (error) { toast('Fehler beim Laden', 'error'); return; }
 
-      const total = data.reduce((s, g) => s + (parseInt(g.persons) || 0), 0);
+      const total   = data.reduce((s, g) => s + (parseInt(g.persons) || 0), 0);
+      const kloster = data.filter(g => g.kloster === 'ja').length;
       document.getElementById('guests-summary').textContent =
         data.length
-          ? `${data.length} Familie${data.length !== 1 ? 'n' : ''} eingetragen` +
-          (total ? ` · ca. ${total} Personen` : '')
+          ? `${data.length} Familie${data.length !== 1 ? 'n' : ''}` +
+            (total   ? ` · ca. ${total} Personen` : '') +
+            ` · Kloster: ${kloster}`
           : '';
 
       const list = document.getElementById('guests-list');
