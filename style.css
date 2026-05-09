@@ -392,28 +392,12 @@ nav.tabs {
   margin-top: 6px;
   padding-top: 6px;
   border-top: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.wishlist-detail-row {
-  display: flex;
-  gap: 8px;
-  font-size: 0.75rem;
-  color: var(--gray);
-  align-items: baseline;
-}
-
-.wishlist-detail-family {
-  font-weight: 700;
-  color: var(--green-dark);
-  flex-shrink: 0;
-  min-width: 70px;
 }
 
 .wishlist-detail-info {
+  font-size: 0.75rem;
   color: var(--gray);
+  line-height: 1.4;
 }
 
 .wishlist-bottom {

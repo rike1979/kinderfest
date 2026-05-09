@@ -486,14 +486,10 @@
 
         const detailHtml = details.length ? `
           <div class="wishlist-details">
-            ${details.map(d => {
-              const qty = d.quantity ? (/^\d/.test(d.quantity) ? d.quantity + '×' : d.quantity) : '';
-              const what = d.item !== item.item ? h(d.item) : (qty ? '' : '–');
-              return `<div class="wishlist-detail-row">
-                <span class="wishlist-detail-family">${h(d.family)}</span>
-                <span class="wishlist-detail-info">${qty ? `${qty} ` : ''}${what}</span>
-              </div>`;
-            }).join('')}
+            <span class="wishlist-detail-info">${details.map(d => {
+              const qty = d.quantity && /^\d/.test(d.quantity) && parseInt(d.quantity) > 1 ? `${d.quantity}× ` : '';
+              return qty + h(d.item);
+            }).join(' · ')}</span>
           </div>` : '';
 
         return `
