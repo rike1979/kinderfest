@@ -346,9 +346,8 @@ nav.tabs {
   padding: 12px 14px;
   margin-bottom: 8px;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .wishlist-card.done {
@@ -611,5 +610,14 @@ nav.tabs {
 
   .container {
     padding: 10px;
+  }
+
+  .contrib-row {
+    grid-template-columns: 3.5rem 1fr auto;
+  }
+
+  .btn-edit,
+  .btn-delete {
+    padding: 5px 6px;
   }
 }
