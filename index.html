@@ -558,7 +558,7 @@
       if (error) { toast('Fehler beim Speichern', 'error'); return; }
       closeOverlay('wishlist-overlay');
       toast('Gespeichert', 'success');
-      loadWishlist();
+      await loadWishlist();
     }
 
     // ════════════════════════════════════
