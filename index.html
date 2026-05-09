@@ -458,12 +458,15 @@
       const items   = r1.data || [];
       const contribs = r2.data || [];
 
-      // Bereits zugesagte Menge pro Wunschlisten-Item summieren
+      // Bereits zugesagte Menge + Details pro Wunschlisten-Item
       const committed = {};
+      const committedDetails = {};
       contribs.forEach(c => {
         if (!c.wishlist_item_id) return;
         const qty = !c.quantity ? 0 : (parseInt(c.quantity) || 1);
         committed[c.wishlist_item_id] = (committed[c.wishlist_item_id] || 0) + qty;
+        if (!committedDetails[c.wishlist_item_id]) committedDetails[c.wishlist_item_id] = [];
+        committedDetails[c.wishlist_item_id].push({ family: c.family_name, item: c.item, quantity: c.quantity });
       });
 
       const list = document.getElementById('wishlist-list');
@@ -479,6 +482,16 @@
         const got       = committed[item.id] || 0;
         const remaining = item.quantity_needed - got;
         const isDone    = remaining <= 0;
+        const details   = committedDetails[item.id] || [];
+
+        const detailHtml = details.length ? `
+          <ul class="wishlist-details">
+            ${details.map(d => `<li>
+              <span class="wishlist-detail-family">${h(d.family)}</span>
+              ${d.quantity ? `<span class="wishlist-detail-qty">${/^\d/.test(d.quantity) ? d.quantity + '×' : d.quantity}</span>` : ''}
+              ${h(d.item)}
+            </li>`).join('')}
+          </ul>` : '';
 
         return `
         <div class="wishlist-card${isDone ? ' done' : ''}">
@@ -490,6 +503,7 @@
             </div>
           </div>
           <div class="wishlist-meta">Gesamtbedarf: ${item.quantity_needed} · Bereits zugesagt: ${got}</div>
+          ${detailHtml}
           ${isDone
             ? `<div class="wishlist-done-label">Vollständig gedeckt</div>`
             : `<div class="wishlist-bottom">

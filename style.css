@@ -388,6 +388,39 @@ nav.tabs {
   margin-bottom: 4px;
 }
 
+.wishlist-details {
+  list-style: none;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wishlist-details li {
+  font-size: 0.78rem;
+  color: #374151;
+  padding-left: 10px;
+  position: relative;
+}
+
+.wishlist-details li::before {
+  content: '·';
+  position: absolute;
+  left: 0;
+  color: var(--gray);
+}
+
+.wishlist-detail-family {
+  font-weight: 700;
+  color: var(--green-dark);
+  margin-right: 4px;
+}
+
+.wishlist-detail-qty {
+  color: var(--gray);
+  margin-right: 3px;
+}
+
 .wishlist-bottom {
   display: flex;
   align-items: center;
