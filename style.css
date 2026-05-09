@@ -167,6 +167,7 @@ nav.tabs {
 .btn-edit {
   background: var(--green-light);
   color: var(--green-dark);
+  border: 1.5px solid var(--green);
 }
 
 .btn-delete {
