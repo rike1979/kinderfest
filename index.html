@@ -381,7 +381,7 @@
           ? `<button class="btn btn-add" onclick="openContributionForm(null,'${h(family)}')">+ Hinzufügen</button>`
           : `<span class="readonly-badge">nur lesen</span>`}
       </div>
-      <div class="card-body">
+      <div class="card-body contrib-body">
         ${items.map(c => `
           <div class="contrib-row">
             <span class="contrib-qty">${c.quantity ? ((/^\d/.test(c.quantity) ? `${h(c.quantity)}×` : h(c.quantity))) : ''}</span>

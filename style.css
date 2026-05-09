@@ -412,7 +412,8 @@ nav.tabs {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-top: 8px;
+  margin-top: auto;
+  padding-top: 8px;
 }
 
 .contrib-item-wrap {
@@ -451,7 +452,6 @@ nav.tabs {
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
-  align-items: start;
 }
 
 @media (min-width: 640px) {
@@ -462,11 +462,30 @@ nav.tabs {
 
 #wishlist-list .wishlist-card {
   margin-bottom: 0;
+  height: 100%;
 }
 
 #wishlist-list > p,
 #wishlist-list > .empty {
   grid-column: 1 / -1;
+}
+
+/* ── 2-column items inside family cards (tablet+) ── */
+@media (min-width: 640px) {
+  .contrib-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 12px;
+  }
+
+  .contrib-body .contrib-row:last-child,
+  .contrib-body .contrib-row:nth-last-child(2):nth-child(odd) {
+    border-bottom: none;
+  }
+
+  .contrib-body .contrib-row:only-child {
+    grid-column: 1 / -1;
+  }
 }
 
 
